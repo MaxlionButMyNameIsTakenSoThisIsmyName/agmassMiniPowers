@@ -26,13 +26,14 @@ import java.io.File;
 
 public final class AgmassMiniPowers extends JavaPlugin {
 
-    public static void hasPP(String ppe, Player p) {
+    public static boolean hasPP(String ppe, Player p) {
         NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "pp");
-        return if(p.getPersistentDataContainer().get(key, PersistentDataType.STRING) == ppe);
+        boolean b = p.getPersistentDataContainer().get(key, PersistentDataType.STRING).equals(ppe);
+        return b;
     }
     public static void wardenTimerReset(Player p, Double t) {
         for (Player all : Bukkit.getOnlinePlayers()) {
-            if (all.hasPermission("miniwarden.isWarden")) {
+            if (AgmassMiniPowers.hasPP("warden", all)) {
                 all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), p);
                 NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
                 p.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, t);
@@ -77,7 +78,7 @@ class MyListener implements Listener {
     public void useAbility(PlayerSwapHandItemsEvent e) {
         NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "pp");
         e.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.STRING, "warden");
-        if (e.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.STRING) == "warden") {
+        if (AgmassMiniPowers.hasPP("warden", e.getPlayer())) {
             e.getPlayer().addPotionEffect(PotionEffectType.DARKNESS.createEffect(90, 2));
             for (Entity ps : e.getPlayer().getNearbyEntities(e.getPlayer().getLocation().getX(), e.getPlayer().getLocation().getY(), e.getPlayer().getLocation().getZ())) {
                 if (ps instanceof Player){
@@ -94,19 +95,21 @@ class MyListener implements Listener {
 
     @EventHandler
     public void noise6(BlockReceiveGameEvent event) {
-        if (event.getEntity().hasPermission("miniwarden.isWarden")) {
-            event.setCancelled(true);
+        if (event.getEntity().getType().equals(EntityType.PLAYER)) {
+            if (AgmassMiniPowers.hasPP("warden", Bukkit.getPlayer(event.getEntity().getName()))) {
+                event.setCancelled(true);
+            }
         }
     }
 
     @EventHandler
     public void replaceWarden(EntitySpawnEvent e) {
         if (e.getEntity().getType() == EntityType.WARDEN && Bukkit.getOnlinePlayers().stream().filter((p) -> {
-            return p.hasPermission("miniwarden.isWarden");
+            return AgmassMiniPowers.hasPP("warden", p);
         }).count() > 0L) {
             e.setCancelled(true);
             Bukkit.getOnlinePlayers().stream().filter((p) -> {
-                return p.hasPermission("miniwarden.isWarden");
+                return AgmassMiniPowers.hasPP("warden", p);
             }).forEach((p) -> {
                 p.teleport(e.getLocation());
             });
@@ -123,14 +126,14 @@ class MyTask extends BukkitRunnable {
         for(Player all : Bukkit.getOnlinePlayers()) {
             NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
             all.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, all.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE) - 1);
-            if (all.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE) < 1 && !all.hasPermission("miniwarden.isWarden")) {
+            if (all.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE) < 1 && !AgmassMiniPowers.hasPP("warden", all)) {
                 Bukkit.getOnlinePlayers().stream()
-                        .filter(p -> p.hasPermission("miniwarden.isWarden"))
+                        .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                         .forEach(p -> p.hidePlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), all));
             }
         }
         Bukkit.getOnlinePlayers().stream()
-                .filter(p -> p.hasPermission("miniwarden.isWarden"))
+                .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                 .forEach(p -> p.setFreezeTicks(40));
     }
 }
@@ -139,7 +142,7 @@ class MyTaske extends BukkitRunnable {
     @Override
     public void run(){
         Bukkit.getOnlinePlayers().stream()
-                .filter(p -> p.hasPermission("miniwarden.isWarden"))
+                .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                 .forEach(p -> Bukkit.getWorld(p.getWorld().getName()).playSound(p.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, SoundCategory.VOICE, 1, 0));
     }
 }

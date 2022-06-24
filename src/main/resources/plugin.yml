@@ -5,3 +5,8 @@ api-version: 1.19
 prefix: AMP
 authors: [ agmass ]
 description: A Plugin inspired by origins where players can earn advantages and disadvantages.
+commands:
+  resetPP:
+    description: reset the sender's PP
+    usage: /<command>
+    permission: amp.rs

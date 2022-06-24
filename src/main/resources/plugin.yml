@@ -1,0 +1,7 @@
+name: AMiniPowers
+version: ${project.version}
+main: agmass.agmassminipowers.AgmassMiniPowers
+api-version: 1.19
+prefix: AMP
+authors: [ agmass ]
+description: A Plugin inspired by origins where players can earn advantages and disadvantages.

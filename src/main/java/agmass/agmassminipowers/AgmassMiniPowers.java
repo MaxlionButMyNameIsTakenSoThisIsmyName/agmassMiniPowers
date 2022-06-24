@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,6 +18,11 @@ import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.MaterialData;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
@@ -40,12 +46,20 @@ public final class AgmassMiniPowers extends JavaPlugin {
         MyTaske t2 = new MyTaske();
         t2.runTaskTimer(getPlugin(this.getClass()), 0, 20);
         getServer().getPluginManager().registerEvents(new MyListener(), this);
+        String worldJSON =
+        "{\n" +
+                "   \"layers\":[\n" +
+                "      {\n" +
+                "         \"block\":\"dirt\",\n" +
+                "         \"height\":1\n" +
+                "      }]\n" +
+                "}";
         if (Bukkit.getWorld("pickingWorld") == null) {
             WorldCreator wc = new WorldCreator("pickingWorld");
 
             wc.environment(World.Environment.NORMAL);
             wc.type(WorldType.FLAT);
-            wc.generatorSettings("0;0;0;");
+            wc.generatorSettings(worldJSON);
 
             wc.createWorld();
         }
@@ -123,8 +137,10 @@ class MyListener implements Listener {
     @EventHandler
     public void rst(PlayerJoinEvent event) {
         NamespacedKey key1 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "pp");
+        NamespacedKey key13123 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
+        event.getPlayer().getPersistentDataContainer().set(key13123, PersistentDataType.STRING, "warden");
         if (event.getPlayer().getPersistentDataContainer().get(key1, PersistentDataType.STRING) == null) {
-            event.getPlayer().getPersistentDataContainer().set(key1, PersistentDataType.STRING, "warden");
+            event.getPlayer().getPersistentDataContainer().set(key1, PersistentDataType.STRING, "NaN");
         }
         NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
         event.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 30.0);
@@ -188,6 +204,28 @@ class MyListener implements Listener {
 class MyTask extends BukkitRunnable {
     @Override
     public void run(){
+        Location location = new Location(Bukkit.getWorld("pickingWorld"), 0, -45, 0, -180, 90);
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("NaN", p);
+        }).forEach((p) -> {
+            p.teleport(location);
+            p.
+            PlayerInventory inv = p.getInventory();
+            inv.clear();
+            ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
+            BookMeta bm = (BookMeta) book.getItemMeta();
+            NamespacedKey key13123 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.STRING) == null) {
+                p.getPersistentDataContainer().set(key13123, PersistentDataType.STRING, "warden");
+            }
+            bm.setTitle(ChatColor.GREEN + p.getPersistentDataContainer().get(key13123, PersistentDataType.STRING).toUpperCase());
+            bm.setAuthor(ChatColor.BLUE + "AMP Plugin");
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.STRING) == "warden") {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [WARDEN]\n" + ChatColor.GRAY + "A blind creature born in the depths of caverns from a strange sculk substance with feared powers." + ChatColor.RED + "\n\nTerrible Vision" + ChatColor.GRAY + "\nYour blind eyes make you only be able to see players making sound.", ChatColor.RED + "Sculk-Infused" + ChatColor.GRAY + "\nYou have constant 'sculk' around your screen, making you mine, walk and jump slower." + ChatColor.GOLD + "\n\nHeartbeat" + ChatColor.GRAY + "\nA heartbeat sound constantly plays around you. can be disabled by setting 'voices/speech' to 0 in sound settings.", ChatColor.GREEN + "Dark Spread" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can give anyone around you the darkness effect for 9 seconds, and inflicts you with it for ~4s." + ChatColor.GREEN + "\n\nSculky Friends" + ChatColor.GRAY + "\nYou will not trigger sculk sensors.", ChatColor.GREEN + "Shrieked" + ChatColor.GRAY + "\nWhen a player activates a shrieker, Instead of a warden spawning, you will be summoned for an easy catch. Warden will not spawn as long as you are online.");
+            }
+            book.setItemMeta(bm);
+            inv.setItem(4, book);
+        });
         for(Player all : Bukkit.getOnlinePlayers()) {
             NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
             all.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, all.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE) - 1);

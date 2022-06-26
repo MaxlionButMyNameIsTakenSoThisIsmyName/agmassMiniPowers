@@ -214,7 +214,8 @@ class MyListener implements Listener {
     @EventHandler
     public void rst(PlayerJoinEvent event) {
         NamespacedKey key1 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "pp");
-        p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
+        NamespacedKey key131232 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wasInWater");
+        event.getPlayer().getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
         NamespacedKey key13123 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
         event.getPlayer().getPersistentDataContainer().remove(key13123);
         event.getPlayer().getPersistentDataContainer().set(key13123, PersistentDataType.INTEGER, 0);
@@ -463,7 +464,7 @@ class MyTask extends BukkitRunnable {
             NamespacedKey key131232 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wasInWater");
             p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 3));
             p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 3 ));
-            if (p.isInWater()) {
+            if (p.isInWater() && !new Location(p.getWorld(), p.getLocation().getX(), p.getEyeLocation().getY(), p.getLocation().getZ()).getBlock().getType().equals(Material.AIR)) {
                 p.setRemainingAir(0);
                 p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
             } else {

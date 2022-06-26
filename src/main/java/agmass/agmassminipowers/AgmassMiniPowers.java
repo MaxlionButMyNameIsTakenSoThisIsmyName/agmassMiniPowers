@@ -214,6 +214,7 @@ class MyListener implements Listener {
     @EventHandler
     public void rst(PlayerJoinEvent event) {
         NamespacedKey key1 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "pp");
+        p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
         NamespacedKey key13123 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
         event.getPlayer().getPersistentDataContainer().remove(key13123);
         event.getPlayer().getPersistentDataContainer().set(key13123, PersistentDataType.INTEGER, 0);
@@ -222,7 +223,6 @@ class MyListener implements Listener {
         }
         NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
         event.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 30.0);
-        Bukkit.broadcastMessage(event.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE).toString());
         for (Player all : Bukkit.getOnlinePlayers()) {
             if (AgmassMiniPowers.hasPP("warden", all)) {
                 all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), event.getPlayer());
@@ -467,7 +467,7 @@ class MyTask extends BukkitRunnable {
                 p.setRemainingAir(0);
                 p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
             } else {
-                if (p.getPersistentDataContainer().get(key131232, PersistentDataType.INTEGER) == 1) p.setRemainingAir(100);
+                if (p.getPersistentDataContainer().get(key131232, PersistentDataType.INTEGER) == 1) p.setRemainingAir(300);
                 p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 0);
                 p.setRemainingAir(p.getRemainingAir() - 6);
                 if (p.getRemainingAir() <= 0) {

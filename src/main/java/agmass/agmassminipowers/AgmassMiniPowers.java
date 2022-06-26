@@ -222,7 +222,6 @@ class MyListener implements Listener {
         }
         NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
         event.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, 30.0);
-        Bukkit.broadcastMessage(event.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE).toString());
         for (Player all : Bukkit.getOnlinePlayers()) {
             if (AgmassMiniPowers.hasPP("warden", all)) {
                 all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), event.getPlayer());

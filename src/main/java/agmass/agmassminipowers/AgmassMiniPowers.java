@@ -49,9 +49,9 @@ public final class AgmassMiniPowers extends JavaPlugin {
             p.getWorld().spawnParticle(Particle.FLASH, p.getLocation(), 10);
         }
         if (AgmassMiniPowers.hasPP("soulling", p)) {
-            if (p.getWorld().getName() != "soulWorld") {
-                new Location(Bukkit.getWorld("soulWorld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
-                p.teleport(new Location(Bukkit.getWorld("soulWorld"), 0, 0, 0));
+            if (p.getWorld().getName() != "soulworld") {
+                new Location(Bukkit.getWorld("soulworld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
+                p.teleport(new Location(Bukkit.getWorld("soulworld"), 0, 0, 0));
             } else {
                 p.teleport(Bukkit.getWorld("world").getSpawnLocation());
                 p.sendMessage("You were sent back to the normal world.");
@@ -123,8 +123,8 @@ public final class AgmassMiniPowers extends JavaPlugin {
                         "         \"height\":1\n" +
                         "      }]\n" +
                         "}";
-        if (Bukkit.getWorld("pickingWorld") == null) {
-            WorldCreator wc = new WorldCreator("pickingWorld");
+        if (Bukkit.getWorld("pickingworld") == null) {
+            WorldCreator wc = new WorldCreator("pickingworld");
 
             wc.environment(World.Environment.NORMAL);
             wc.type(WorldType.FLAT);
@@ -132,8 +132,8 @@ public final class AgmassMiniPowers extends JavaPlugin {
 
             wc.createWorld();
         }
-        if (Bukkit.getWorld("soulWorld") == null) {
-            WorldCreator wce = new WorldCreator("soulWorld");
+        if (Bukkit.getWorld("soulworld") == null) {
+            WorldCreator wce = new WorldCreator("soulworld");
             wce.environment(World.Environment.NORMAL);
             wce.generatorSettings(wJs);
             wce.generateStructures(false);
@@ -328,7 +328,7 @@ class MyListener implements Listener {
 
     @EventHandler
     public void replaceWarden(EntitySpawnEvent e) {
-        if (e.getEntity().getWorld().getName() == "pickingWorld") {
+        if (e.getEntity().getWorld().getName() == "pickingworld") {
             e.setCancelled(true);
         }
         if (e.getEntity().getType() == EntityType.WARDEN && Bukkit.getOnlinePlayers().stream().filter((p) -> {
@@ -380,7 +380,7 @@ class MyListener implements Listener {
 class MyTask extends BukkitRunnable {
     @Override
     public void run(){
-        Location location = new Location(Bukkit.getWorld("pickingWorld"), 0, -45, 0, -180, 90);
+        Location location = new Location(Bukkit.getWorld("pickingworld"), 0, -45, 0, -180, 90);
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("NaN", p);
         }).forEach((p) -> {

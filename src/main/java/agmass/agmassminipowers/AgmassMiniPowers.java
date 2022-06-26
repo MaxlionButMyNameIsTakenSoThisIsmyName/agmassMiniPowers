@@ -8,6 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -21,6 +22,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -34,6 +36,38 @@ public final class AgmassMiniPowers extends JavaPlugin {
 
     public static List<String> pps = new ArrayList<String>();
     public static List<Material> beds = new ArrayList<Material>();
+
+    public static void useAb(Player p) {
+        if (AgmassMiniPowers.hasPP("elytrian", p.getPlayer())) {
+            if (p.isOnGround()) {
+                p.getWorld().spawnParticle(Particle.CLOUD, p.getLocation(), 10);
+                p.setVelocity(new Vector(0, 20, 0));
+            }
+        }
+        if (AgmassMiniPowers.hasPP("frog", p)) {
+            p.getWorld().spawnEntity(p.getLocation(), EntityType.TADPOLE);
+            p.getWorld().spawnParticle(Particle.FLASH, p.getLocation(), 10);
+        }
+        if (AgmassMiniPowers.hasPP("soulling", p)) {
+            if (p.getWorld().getName() != "soulWorld") {
+                new Location(Bukkit.getWorld("soulWorld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
+                p.teleport(new Location(Bukkit.getWorld("soulWorld"), 0, 0, 0));
+            } else {
+                p.teleport(Bukkit.getWorld("world").getSpawnLocation());
+                p.sendMessage("You were sent back to the normal world.");
+            }
+        }
+        if (AgmassMiniPowers.hasPP("warden", p)) {
+            p.addPotionEffect(PotionEffectType.DARKNESS.createEffect(90, 2));
+            for (Entity ps : p.getNearbyEntities(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ())) {
+                if (ps instanceof Player){
+                    Player pps = ((Player) ps).getPlayer();
+                    pps.addPotionEffect(PotionEffectType.DARKNESS.createEffect(180, 2));
+                }
+            }
+        }
+    }
+
     public static boolean hasPP(String ppe, Player p) {
         NamespacedKey key1 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "pp");
         boolean b = p.getPersistentDataContainer().get(key1, PersistentDataType.STRING).equals(ppe);
@@ -66,6 +100,7 @@ public final class AgmassMiniPowers extends JavaPlugin {
         pps.add("merling");
         pps.add("human");
         this.getCommand("resetPP").setExecutor(new CommandKit());
+        this.getCommand("a").setExecutor(new CommandKit2());
         this.getLogger().info("You're currently running AMP version " + this.getDescription().getVersion() + " (Made for MC" + this.getDescription().getAPIVersion() + ")");
         MyTask t1 = new MyTask();
         t1.runTaskTimer(getPlugin(this.getClass()), 0, 1);
@@ -197,34 +232,7 @@ class MyListener implements Listener {
 
     @EventHandler
     public void useAbility(PlayerSwapHandItemsEvent e) {
-        if (AgmassMiniPowers.hasPP("elytrian", e.getPlayer())) {
-            if (e.getPlayer().isOnGround()) {
-                e.getPlayer().getWorld().spawnParticle(Particle.CLOUD, e.getPlayer().getLocation(), 10);
-                e.getPlayer().setVelocity(new Vector(0, 20, 0));
-            }
-        }
-        if (AgmassMiniPowers.hasPP("frog", e.getPlayer())) {
-            e.getPlayer().getWorld().spawnEntity(e.getPlayer().getLocation(), EntityType.TADPOLE);
-            e.getPlayer().getWorld().spawnParticle(Particle.FLASH, e.getPlayer().getLocation(), 10);
-        }
-        if (AgmassMiniPowers.hasPP("soulling", e.getPlayer())) {
-            if (e.getPlayer().getWorld().getName() != "soulWorld") {
-                new Location(Bukkit.getWorld("soulWorld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
-                e.getPlayer().teleport(new Location(Bukkit.getWorld("soulWorld"), 0, 0, 0));
-            } else {
-                e.getPlayer().teleport(Bukkit.getWorld("world").getSpawnLocation());
-                e.getPlayer().sendMessage("You were sent back to the normal world.");
-            }
-        }
-        if (AgmassMiniPowers.hasPP("warden", e.getPlayer())) {
-            e.getPlayer().addPotionEffect(PotionEffectType.DARKNESS.createEffect(90, 2));
-            for (Entity ps : e.getPlayer().getNearbyEntities(e.getPlayer().getLocation().getX(), e.getPlayer().getLocation().getY(), e.getPlayer().getLocation().getZ())) {
-                if (ps instanceof Player){
-                    Player pps = ((Player) ps).getPlayer();
-                    pps.addPotionEffect(PotionEffectType.DARKNESS.createEffect(180, 2));
-                }
-            }
-        }
+        AgmassMiniPowers.useAb(e.getPlayer());
     }
     @EventHandler
     public void noise3(BlockBreakEvent event) {
@@ -255,9 +263,6 @@ class MyListener implements Listener {
                 e.getPlayer().getInventory().clear();
                 e.getPlayer().addPotionEffect(PotionEffectType.DAMAGE_RESISTANCE.createEffect(30, 255));
                 e.getPlayer().getPersistentDataContainer().set(key13123, PersistentDataType.STRING, AgmassMiniPowers.pps.get(e.getPlayer().getPersistentDataContainer().get(skey13123, PersistentDataType.INTEGER)));
-                if (e.getPlayer().getPersistentDataContainer().get(key13123, PersistentDataType.STRING).equals("warden")) {
-                    e.getPlayer().sendMessage("1.19 Spigot does not include ancient cities to be locatable. Ask an op if you want to be tped to an ancient city.");
-                }
             }
         }
     }
@@ -317,6 +322,9 @@ class MyListener implements Listener {
 
     @EventHandler
     public void replaceWarden(EntitySpawnEvent e) {
+        if (e.getEntity().getWorld().getName() == "pickingWorld") {
+            e.setCancelled(true);
+        }
         if (e.getEntity().getType() == EntityType.WARDEN && Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("warden", p);
         }).count() > 0L) {
@@ -406,7 +414,7 @@ class MyTask extends BukkitRunnable {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [ELYTRIAN]\n" + ChatColor.GRAY + "Peacful Builders from the sky that have developed natural wings" + ChatColor.RED + "\n\nNeed For Mobility" + ChatColor.GRAY + "\nYou cannot wear chestplates.", ChatColor.RED + "Claustrophobic" + ChatColor.GRAY + "\nYou get slowness and weakness if a block is above you" + ChatColor.RED + "\nFallFlying" + ChatColor.GRAY + "\nYou take 2x fall damage." + ChatColor.GREEN + "\nLaunch" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can launch up into the skies " + ChatColor.GREEN + "\nElytrian" + ChatColor.GRAY + "\nYou have a permanent elytra");
             }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 4) {
-                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [Merling]" + ChatColor.GRAY + "" + ChatColor.RED + "\n\nWater Being" + ChatColor.GRAY + "\nYou cannot wear chestplates.", ChatColor.RED + "Claustrophobic" + ChatColor.GRAY + "\nYou get slowness and weakness if a block is above you" + ChatColor.RED + "\nFallFlying" + ChatColor.GRAY + "\nYou take 2x fall damage." + ChatColor.GREEN + "\nLaunch" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can launch up into the skies " + ChatColor.GREEN + "\nElytrian" + ChatColor.GRAY + "\nYou have a permanent elytra");
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [Merling]" + ChatColor.GRAY + "" + ChatColor.GOLD + "\n\nWater Being" + ChatColor.GRAY + "\nYou cannot breathe on land, but have extrodinary water powers. You have perma-haste and can breath infinitely and are fast in water.");
             }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
@@ -452,9 +460,9 @@ class MyTask extends BukkitRunnable {
             if (p.isInWater()) {
                 p.setRemainingAir(300);
             } else {
-                p.setRemainingAir(p.getRemainingAir() - 1);
+                p.setRemainingAir(p.getRemainingAir() - 6);
                 if (p.getRemainingAir() <= 0) {
-                    p.damage(4);
+                    p.damage(1);
                 }
             }
         });
@@ -488,3 +496,16 @@ class MyTaske extends BukkitRunnable {
     }
 }
 
+class CommandKit2 implements CommandExecutor {
+
+    // This method is called, when somebody uses our command
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (sender instanceof Player) {
+            AgmassMiniPowers.useAb((Player) sender);
+        } else {
+            return false;
+        }
+        return true;
+    }
+}

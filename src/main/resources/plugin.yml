@@ -10,3 +10,6 @@ commands:
     description: reset the sender's PP
     usage: /<command>
     permission: amp.rs
+  a:
+    description: Uses the player's ability.
+    usage: /<command>

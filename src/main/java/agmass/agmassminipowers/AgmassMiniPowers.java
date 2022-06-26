@@ -24,6 +24,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -196,6 +197,12 @@ class MyListener implements Listener {
 
     @EventHandler
     public void useAbility(PlayerSwapHandItemsEvent e) {
+        if (AgmassMiniPowers.hasPP("elytrian", e.getPlayer())) {
+            if (e.getPlayer().isOnGround()) {
+                e.getPlayer().getWorld().spawnParticle(Particle.CLOUD, e.getPlayer().getLocation(), 10);
+                e.getPlayer().setVelocity(new Vector(0, 20, 0));
+            }
+        }
         if (AgmassMiniPowers.hasPP("frog", e.getPlayer())) {
             e.getPlayer().getWorld().spawnEntity(e.getPlayer().getLocation(), EntityType.TADPOLE);
             e.getPlayer().getWorld().spawnParticle(Particle.FLASH, e.getPlayer().getLocation(), 10);
@@ -267,6 +274,13 @@ class MyListener implements Listener {
     @EventHandler
     public void soulBond(EntityDamageEvent event) {
         EntityType et = event.getEntity().getType();
+        if (et == EntityType.PLAYER) {
+            if (AgmassMiniPowers.hasPP("elytrian", (Player) event.getEntity())) {
+                if (event.getCause() == EntityDamageEvent.DamageCause.FALL || event.getCause() == EntityDamageEvent.DamageCause.FLY_INTO_WALL) {
+                    ((Player) event.getEntity()).damage(event.getDamage());
+                }
+            }
+        }
         if (et.equals(EntityType.STRIDER) || et.equals(EntityType.ZOMBIFIED_PIGLIN) || et.equals(EntityType.GHAST) || et.equals(EntityType.PIGLIN) || et.equals(EntityType.HOGLIN) || et.equals(EntityType.MAGMA_CUBE) || et.equals(EntityType.BLAZE) || et.equals(EntityType.WITHER_SKELETON) || et.equals(EntityType.PIGLIN_BRUTE))
             Bukkit.getOnlinePlayers().stream()
                     .filter(p -> AgmassMiniPowers.hasPP("soulling", p))
@@ -320,7 +334,7 @@ class MyListener implements Listener {
     public void rclick(PlayerInteractEvent e) {
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (AgmassMiniPowers.hasPP("soulling", e.getPlayer())) {
-                if (AgmassMiniPowers.beds.contains(e.getClickedBlock())) {
+                if (AgmassMiniPowers.beds.contains(e.getClickedBlock().getType())) {
                     e.getPlayer().sendMessage("You can't sleep now, You never know what could happen.");
                     e.setCancelled(true);
                 }
@@ -382,7 +396,10 @@ class MyTask extends BukkitRunnable {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [SOULLING]\n" + ChatColor.GRAY + "Trapped inside the nether's soul sand valleys, souls are trying their best not to go back to their painful origins." + ChatColor.RED + "\nWeak" + ChatColor.GRAY + "\nYou have weakness and mining fatigue" + ChatColor.RED + "\nTrail" + ChatColor.GRAY + "\nYou leave a trail of lava", ChatColor.GOLD + "\n\nGhostly Pockets" + ChatColor.GRAY + "\nYou do not drop your items.", ChatColor.GREEN + "Soul Sand" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can teleport into a new air world. Only you and other soullings can access this." + ChatColor.RED + "\n\nSoul-bound" + ChatColor.GRAY + "\nWhen a nether creature takes damage, you take 1/4 of it's damage.", ChatColor.GREEN + "Neighbours" + ChatColor.GRAY + "\nNether mobs will not target you.");
             }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 2) {
-                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [FROG]\n" + ChatColor.GRAY + "Ribbit" + ChatColor.RED + "\nHeavy Eater" + ChatColor.GRAY + "\nWhen damaging a mob or player, you get food back. You cannot regain by natural hunger" + ChatColor.RED + "\nJumpy Jumpy" + ChatColor.GRAY + "\nYou have slowness unless you jump.", ChatColor.GOLD + "\n\nUp, Up And Up" + ChatColor.GRAY + "\nYou have higher jump boost.", ChatColor.GREEN + "Defensive Tadpoles" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can use 1/2 of your hunger bar to cause a big particle flash and summon a few very distracting tadpoles. ", ChatColor.GREEN + "\n\nWaterborne" + ChatColor.GRAY + "\nYou do amazingly in water and can stay in it for very long periods" + ChatColor.GREEN + "\n\nSticky Feet" + ChatColor.GRAY + "\nYour feet are silent and cannot be heard by sculk sensors");
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [FROG]\n" + ChatColor.GRAY + "Ribbit" + ChatColor.RED + "\n\nHeavy Eater" + ChatColor.GRAY + "\nWhen damaging a mob or player, you get food back. You cannot regain by natural hunger" + ChatColor.RED + "\nJumpy Jumpy" + ChatColor.GRAY + "\nYou have slowness unless you jump.", ChatColor.GREEN + "Up, Up And Up" + ChatColor.GRAY + "\nYou have higher jump boost." + ChatColor.GREEN + "\n\nDefensive Tadpoles" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can use 1/2 of your hunger bar to cause a big particle flash and summon a few very distracting tadpoles. ", ChatColor.GREEN + "Waterborne" + ChatColor.GRAY + "\nYou do amazingly in water and can stay in it for very long periods" + ChatColor.GREEN + "\n\nSticky Feet" + ChatColor.GRAY + "\nYour feet are silent and cannot be heard by sculk sensors");
+            }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 3) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [ELYTRIAN]\n" + ChatColor.GRAY + "Peacful Builders from the sky that have developed natural wings" + ChatColor.RED + "\n\nNeed For Mobility" + ChatColor.GRAY + "\nYou cannot wear chestplates.", ChatColor.RED + "Claustrophobic" + ChatColor.GRAY + "\nYou get slowness and weakness if a block is above you" + ChatColor.RED + "\nFallFlying" + ChatColor.GRAY + "\nYou take 2x fall damage." + ChatColor.GREEN + "\nLaunch" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can launch up into the skies " + ChatColor.GREEN + "\nElytrian" + ChatColor.GRAY + "\nYou have a permanent elytra");
             }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
@@ -400,11 +417,30 @@ class MyTask extends BukkitRunnable {
             p.getWorld().spawnParticle(Particle.DRIP_LAVA, p.getLocation(), 1);
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("elytrian", p);
+        }).forEach((p) -> {
+            ItemStack ely = new ItemStack(Material.ELYTRA, 69);
+            ely.addEnchantment(Enchantment.BINDING_CURSE, 1);
+            ely.addEnchantment(Enchantment.VANISHING_CURSE, 1);
+            p.getInventory().setChestplate(ely);
+            if (!new Location(p.getWorld(), p.getLocation().getX(), p.getLocation().getY() + 2, p.getLocation().getZ()).getBlock().getType().equals(Material.AIR)) {
+                p.addPotionEffect(PotionEffectType.SLOW.createEffect(2, 3));
+                p.addPotionEffect(PotionEffectType.WEAKNESS.createEffect(2, 3));
+            }
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("frog", p);
         }).forEach((p) -> {
-            p.addPotionEffect(PotionEffectType.SLOW.createEffect(2, 2));
+            p.setWalkSpeed(0);
+            p.setFallDistance(0);
             p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 2));
+            p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 2));
             p.addPotionEffect(PotionEffectType.JUMP.createEffect(2, 1));
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return !AgmassMiniPowers.hasPP("frog", p);
+        }).forEach((p) -> {
+            p.setWalkSpeed(0.2f);
         });
         for(Player all : Bukkit.getOnlinePlayers()) {
             NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");

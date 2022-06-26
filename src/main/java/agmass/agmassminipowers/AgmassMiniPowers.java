@@ -272,6 +272,10 @@ class MyListener implements Listener {
     }
 
     @EventHandler
+    public void noFoodRegen(FoodLevelChangeEvent e) {
+        if (AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(e.getEntity().getName()))) e.setCancelled(true);
+    }
+    @EventHandler
     public void soulBond(EntityDamageEvent event) {
         EntityType et = event.getEntity().getType();
         if (et == EntityType.PLAYER) {
@@ -401,6 +405,9 @@ class MyTask extends BukkitRunnable {
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 3) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [ELYTRIAN]\n" + ChatColor.GRAY + "Peacful Builders from the sky that have developed natural wings" + ChatColor.RED + "\n\nNeed For Mobility" + ChatColor.GRAY + "\nYou cannot wear chestplates.", ChatColor.RED + "Claustrophobic" + ChatColor.GRAY + "\nYou get slowness and weakness if a block is above you" + ChatColor.RED + "\nFallFlying" + ChatColor.GRAY + "\nYou take 2x fall damage." + ChatColor.GREEN + "\nLaunch" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can launch up into the skies " + ChatColor.GREEN + "\nElytrian" + ChatColor.GRAY + "\nYou have a permanent elytra");
             }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 4) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [Merling]" + ChatColor.GRAY + "" + ChatColor.RED + "\n\nWater Being" + ChatColor.GRAY + "\nYou cannot wear chestplates.", ChatColor.RED + "Claustrophobic" + ChatColor.GRAY + "\nYou get slowness and weakness if a block is above you" + ChatColor.RED + "\nFallFlying" + ChatColor.GRAY + "\nYou take 2x fall damage." + ChatColor.GREEN + "\nLaunch" + ChatColor.BLUE + " [F]" + ChatColor.GRAY + "\nUsing the F key, you can launch up into the skies " + ChatColor.GREEN + "\nElytrian" + ChatColor.GRAY + "\nYou have a permanent elytra");
+            }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
             }
@@ -433,9 +440,23 @@ class MyTask extends BukkitRunnable {
         }).forEach((p) -> {
             p.setWalkSpeed(0);
             p.setFallDistance(0);
-            p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 2));
-            p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 2));
+            p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 0));
+            p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 0));
             p.addPotionEffect(PotionEffectType.JUMP.createEffect(2, 1));
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("merling", p);
+        }).forEach((p) -> {
+            p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 3));
+            p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 3 ));
+            if (p.isInWater()) {
+                p.setRemainingAir(300);
+            } else {
+                p.setRemainingAir(p.getRemainingAir() - 1);
+                if (p.getRemainingAir() <= 0) {
+                    p.damage(4);
+                }
+            }
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return !AgmassMiniPowers.hasPP("frog", p);

@@ -1,13 +1,11 @@
 package agmass.agmassminipowers;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -98,6 +96,7 @@ public final class AgmassMiniPowers extends JavaPlugin {
         pps.add("frog");
         pps.add("elytrian");
         pps.add("merling");
+        pps.add("swordsman");
         pps.add("human");
         this.getCommand("resetPP").setExecutor(new CommandKit());
         this.getCommand("a").setExecutor(new CommandKit2());
@@ -248,9 +247,11 @@ class MyListener implements Listener {
 
     @EventHandler
     public void noise6(BlockReceiveGameEvent event) {
-        if (event.getEntity().getType().equals(EntityType.PLAYER)) {
-            if (AgmassMiniPowers.hasPP("warden", Bukkit.getPlayer(event.getEntity().getName())) || AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(event.getEntity().getName()))) {
-                event.setCancelled(true);
+        if (!event.getEntity().getType().equals(null)) {
+            if (event.getEntity().getType().equals(EntityType.PLAYER)) {
+                if (AgmassMiniPowers.hasPP("warden", Bukkit.getPlayer(event.getEntity().getName())) || AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(event.getEntity().getName()))) {
+                    event.setCancelled(true);
+                }
             }
         }
     }
@@ -312,6 +313,33 @@ class MyListener implements Listener {
     @EventHandler
     public void frogeat(EntityDamageByEntityEvent e) {
         if (e.getDamager().getType() == EntityType.PLAYER) {
+            if (AgmassMiniPowers.hasPP("swordsman", Bukkit.getPlayer(e.getDamager().getName()))) {
+                List<Material> weaks = new ArrayList<Material>();
+                weaks.add(Material.DIAMOND_AXE);
+                weaks.add(Material.GOLDEN_AXE);
+                weaks.add(Material.IRON_AXE);
+                weaks.add(Material.NETHERITE_AXE);
+                weaks.add(Material.STONE_AXE);
+                weaks.add(Material.WOODEN_AXE);
+                List<Material> strongs = new ArrayList<Material>();
+                strongs.add(Material.DIAMOND_SWORD);
+                strongs.add(Material.GOLDEN_SWORD);
+                strongs.add(Material.IRON_SWORD);
+                strongs.add(Material.NETHERITE_SWORD);
+                strongs.add(Material.STONE_SWORD);
+                strongs.add(Material.WOODEN_SWORD);
+                weaks.add(Material.TRIDENT);
+                if (weaks.contains(Bukkit.getPlayer(e.getDamager().getName()).getInventory().getItemInMainHand().getType())) {
+                    e.setDamage(e.getDamage() / 3);
+                }
+                if (strongs.contains(Bukkit.getPlayer(e.getDamager().getName()).getInventory().getItemInMainHand().getType())) {
+                    e.setDamage(e.getDamage() * 1.5);
+                }
+                if(e.getEntity() instanceof LivingEntity) {
+                    LivingEntity living = (LivingEntity) e.getEntity();
+                    living.setMaximumNoDamageTicks(0);
+                }
+            }
             if (AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(e.getDamager().getName()))) {
                 List<Material> fl = new ArrayList<Material>();
                 fl.add(Material.OCHRE_FROGLIGHT);
@@ -346,7 +374,9 @@ class MyListener implements Listener {
 
     @EventHandler
     public void death(PlayerDeathEvent e) {
-        e.getDrops().clear();
+        if (AgmassMiniPowers.hasPP("soulling", (Player) e.getEntity())) {
+            e.getDrops().clear();
+        }
     }
     @EventHandler
     public void rclick(PlayerInteractEvent e) {
@@ -422,6 +452,9 @@ class MyTask extends BukkitRunnable {
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 4) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [Merling]" + ChatColor.GRAY + "" + ChatColor.GOLD + "\n\nWater Being" + ChatColor.GRAY + "\nYou cannot breathe on land, but have extrodinary water powers. You have perma-haste and can breath infinitely and are fast in water.");
             }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 5) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [SWORDSMAN]" + ChatColor.RED + "\n\nJust the classics" + ChatColor.GRAY + "\nUsing axes or tridents in combat do 1/3 of your damage. Shields break very fast." + ChatColor.RED + "\n\nCarpal Tunnel" + ChatColor.GRAY + "\nWhen moving using your hands- swimming, climbing, using elytra you get bad effects.", ChatColor.GOLD + "Attackable" + ChatColor.GRAY + "\nYou never have invlunerablity ticks, but pepole you hit do not get invincibility ticks." + ChatColor.GREEN + "\nJitter" + ChatColor.GRAY + "\nYou have no attack cooldown." + ChatColor.GREEN + "\nSkilled" + ChatColor.GRAY + "\nYou do 1.5x of your damage when you use a sword");
+            }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
             }
@@ -436,6 +469,26 @@ class MyTask extends BukkitRunnable {
             p.addPotionEffect(PotionEffectType.WEAKNESS.createEffect(2, 0));
             p.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(2, 0));
             p.getWorld().spawnParticle(Particle.DRIP_LAVA, p.getLocation(), 1);
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("swordsman", p);
+        }).forEach((p) -> {
+            if (p.isSwimming() || p.isGliding() || p.isClimbing()) {
+                p.addPotionEffect(PotionEffectType.WEAKNESS.createEffect(2, 0));
+                p.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(2, 0));
+                p.addPotionEffect(PotionEffectType.SLOW.createEffect(2, 0));
+                p.addPotionEffect(PotionEffectType.CONFUSION.createEffect(2, 0));
+            }
+            p.getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(9999);
+            p.setMaximumNoDamageTicks(0);
+            if (p.getInventory().getItemInOffHand().getType() == Material.SHIELD) {
+                p.getInventory().getItemInOffHand().setType(Material.STICK);
+                p.playSound(p, Sound.ITEM_SHIELD_BREAK, 1, 1);
+            }
+            if (p.getInventory().getItemInMainHand().getType() == Material.SHIELD) {
+                p.getInventory().getItemInMainHand().setType(Material.STICK);
+                p.playSound(p, Sound.ITEM_SHIELD_BREAK, 1, 1);
+            }
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("elytrian", p);
@@ -500,6 +553,9 @@ class MyTask extends BukkitRunnable {
 class MyTaske extends BukkitRunnable {
     @Override
     public void run(){
+        Bukkit.getOnlinePlayers().stream()
+                .filter(p -> !AgmassMiniPowers.hasPP("swordsman", p))
+                .forEach(p -> p.setNoDamageTicks(20));
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                 .forEach(p -> Bukkit.getWorld(p.getWorld().getName()).playSound(p.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, SoundCategory.VOICE, 1, 0));

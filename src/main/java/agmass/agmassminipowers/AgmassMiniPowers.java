@@ -47,9 +47,9 @@ public final class AgmassMiniPowers extends JavaPlugin {
             p.getWorld().spawnParticle(Particle.FLASH, p.getLocation(), 10);
         }
         if (AgmassMiniPowers.hasPP("soulling", p)) {
-            if (p.getWorld().getName() != "soulWorld") {
-                new Location(Bukkit.getWorld("soulWorld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
-                p.teleport(new Location(Bukkit.getWorld("soulWorld"), 0, 0, 0));
+            if (p.getWorld().getName() != "soulworld") {
+                new Location(Bukkit.getWorld("soulworld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
+                p.teleport(new Location(Bukkit.getWorld("soulworld"), 0, 0, 0));
             } else {
                 p.teleport(Bukkit.getWorld("world").getSpawnLocation());
                 p.sendMessage("You were sent back to the normal world.");
@@ -131,8 +131,8 @@ public final class AgmassMiniPowers extends JavaPlugin {
 
             wc.createWorld();
         }
-        if (Bukkit.getWorld("soulWorld") == null) {
-            WorldCreator wce = new WorldCreator("soulWorld");
+        if (Bukkit.getWorld("soulworld") == null) {
+            WorldCreator wce = new WorldCreator("soulworld");
             wce.environment(World.Environment.NORMAL);
             wce.generatorSettings(wJs);
             wce.generateStructures(false);
@@ -318,19 +318,23 @@ class MyListener implements Listener {
                 weaks.add(Material.DIAMOND_AXE);
                 weaks.add(Material.GOLDEN_AXE);
                 weaks.add(Material.IRON_AXE);
-                weaks.add(Material.NETHERITE_AXE);
                 weaks.add(Material.STONE_AXE);
                 weaks.add(Material.WOODEN_AXE);
                 List<Material> strongs = new ArrayList<Material>();
                 strongs.add(Material.DIAMOND_SWORD);
                 strongs.add(Material.GOLDEN_SWORD);
                 strongs.add(Material.IRON_SWORD);
-                strongs.add(Material.NETHERITE_SWORD);
                 strongs.add(Material.STONE_SWORD);
                 strongs.add(Material.WOODEN_SWORD);
                 weaks.add(Material.TRIDENT);
+                List<Material> unusable = new ArrayList<Material>();
+                unusable.add(Material.NETHERITE_AXE);
+                unusable.add(Material.NETHERITE_SWORD);
                 if (weaks.contains(Bukkit.getPlayer(e.getDamager().getName()).getInventory().getItemInMainHand().getType())) {
                     e.setDamage(e.getDamage() / 3);
+                }
+                if (unusable.contains(Bukkit.getPlayer(e.getDamager().getName()).getInventory().getItemInMainHand().getType())) {
+                    e.setDamage(0);
                 }
                 if (strongs.contains(Bukkit.getPlayer(e.getDamager().getName()).getInventory().getItemInMainHand().getType())) {
                     e.setDamage(e.getDamage() * 1.5);
@@ -453,7 +457,7 @@ class MyTask extends BukkitRunnable {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [Merling]" + ChatColor.GRAY + "" + ChatColor.GOLD + "\n\nWater Being" + ChatColor.GRAY + "\nYou cannot breathe on land, but have extrodinary water powers. You have perma-haste and can breath infinitely and are fast in water.");
             }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 5) {
-                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [SWORDSMAN]" + ChatColor.RED + "\n\nJust the classics" + ChatColor.GRAY + "\nUsing axes or tridents in combat do 1/3 of your damage. Shields break very fast." + ChatColor.RED + "\n\nCarpal Tunnel" + ChatColor.GRAY + "\nWhen moving using your hands- swimming, climbing, using elytra you get bad effects.", ChatColor.GOLD + "Attackable" + ChatColor.GRAY + "\nYou never have invlunerablity ticks, but pepole you hit do not get invincibility ticks." + ChatColor.GREEN + "\nJitter" + ChatColor.GRAY + "\nYou have no attack cooldown." + ChatColor.GREEN + "\nSkilled" + ChatColor.GRAY + "\nYou do 1.5x of your damage when you use a sword");
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [SWORDSMAN]" + ChatColor.RED + "\n\nJust the classics" + ChatColor.GRAY + "\nUsing new combat methods/tools are weak." + ChatColor.RED + "\n\nCarpal Tunnel" + ChatColor.GRAY + "\nWhen moving using your hands- swimming, climbing, using elytra you get bad effects.", ChatColor.GOLD + "Attackable" + ChatColor.GRAY + "\nYou never have invlunerablity ticks, but pepole you hit do not get invincibility ticks." + ChatColor.GREEN + "\nJitter" + ChatColor.GRAY + "\nYou have no attack cooldown." + ChatColor.GREEN + "\nSkilled" + ChatColor.GRAY + "\nYou do 1.5x of your damage when you use a sword");
             }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
@@ -489,6 +493,11 @@ class MyTask extends BukkitRunnable {
                 p.getInventory().getItemInMainHand().setType(Material.STICK);
                 p.playSound(p, Sound.ITEM_SHIELD_BREAK, 1, 1);
             }
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return !AgmassMiniPowers.hasPP("swordsman", p);
+        }).forEach((p) -> {
+            p.getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(4);
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("elytrian", p);
@@ -555,7 +564,7 @@ class MyTaske extends BukkitRunnable {
     public void run(){
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> !AgmassMiniPowers.hasPP("swordsman", p))
-                .forEach(p -> p.setNoDamageTicks(20));
+                .forEach(p -> p.setMaximumNoDamageTicks(20));
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                 .forEach(p -> Bukkit.getWorld(p.getWorld().getName()).playSound(p.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, SoundCategory.VOICE, 1, 0));

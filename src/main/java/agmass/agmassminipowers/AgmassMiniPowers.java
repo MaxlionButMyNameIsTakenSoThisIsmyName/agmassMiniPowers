@@ -106,6 +106,7 @@ public final class AgmassMiniPowers extends JavaPlugin {
         pps.add("merling");
         pps.add("swordsman");
         pps.add("firefly");
+        pps.add("fox");
         pps.add("human");
         this.getCommand("resetPP").setExecutor(new CommandKit());
         this.getCommand("a").setExecutor(new CommandKit2());
@@ -291,6 +292,7 @@ class MyListener implements Listener {
     public void noFoodRegen(FoodLevelChangeEvent e) {
         if (AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(e.getEntity().getName())) && e.getFoodLevel() > e.getEntity().getFoodLevel()) e.setCancelled(true);
     }
+
     @EventHandler
     public void soulBond(EntityDamageEvent event) {
         EntityType et = event.getEntity().getType();
@@ -316,6 +318,14 @@ class MyListener implements Listener {
     public void frogdis(PlayerItemConsumeEvent e) {
         if (AgmassMiniPowers.hasPP("frog", e.getPlayer())) {
             e.setCancelled(true);
+        }
+        if (AgmassMiniPowers.hasPP("fox", e.getPlayer())) {
+            List<Material> vegan = new ArrayList<Material>();
+            vegan.add(Material.GLOW_BERRIES);
+            vegan.add(Material.SWEET_BERRIES);
+            if (!vegan.contains(e.getItem().getType())) {
+                e.setCancelled(true);
+            }
         }
         if (AgmassMiniPowers.hasPP("firefly", e.getPlayer())) {
             List<Material> vegan = new ArrayList<Material>();
@@ -423,13 +433,19 @@ class MyListener implements Listener {
         if (AgmassMiniPowers.hasPP("soulling", (Player) e.getEntity())) {
             e.getDrops().clear();
         }
+        if (AgmassMiniPowers.hasPP("fox", (Player) e.getEntity())) {
+            e.setKeepInventory(true);
+            e.setKeepLevel(true);
+            e.getDrops().clear();
+            e.setDroppedExp(0);
+        }
     }
     @EventHandler
     public void rclick(PlayerInteractEvent e) {
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (AgmassMiniPowers.hasPP("soulling", e.getPlayer())) {
+            if (AgmassMiniPowers.hasPP("soulling", e.getPlayer()) || AgmassMiniPowers.hasPP("fox", e.getPlayer())) {
                 if (AgmassMiniPowers.beds.contains(e.getClickedBlock().getType())) {
-                    e.getPlayer().sendMessage("You can't sleep now, You never know what could happen.");
+                    e.getPlayer().sendMessage("You can't sleep.");
                     e.setCancelled(true);
                 }
             }
@@ -504,6 +520,9 @@ class MyTask extends BukkitRunnable {
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 6) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [FIREFLY]" + ChatColor.RED + "\n\nBottom of the food chain" + ChatColor.GRAY + "\nYou can only eat plants." + ChatColor.RED + "\n\nSmall" + ChatColor.GRAY + "\nYou have 9 hearts.", ChatColor.GREEN + "Fly" + ChatColor.BLUE + "[F]" + ChatColor.GRAY + "\nWhen pressing F, you can swap between having levitation or slow falling." + ChatColor.GREEN + "\nLightning Bug" + ChatColor.GRAY + "\nYou have permanant night vision." + ChatColor.GREEN + "\nPoisonous" + ChatColor.GRAY + "\nAnyone who hits you gets poison");
             }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 7) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [FOX]" + ChatColor.RED + "\n\nBerry Picky Eater" + ChatColor.GRAY + "\nYou can only eat glow berries and normal berries." + ChatColor.RED + "\n\nNight Owl" + ChatColor.GRAY + "\nYou cannot sleep.", ChatColor.GREEN + "Sly Fox" + ChatColor.GRAY + "\nYou run and jump faster" + ChatColor.GREEN + "\nStrong eyes" + ChatColor.GRAY + "\nYou have permanant night vision." + ChatColor.GREEN + "\nHoarder" + ChatColor.GRAY + "\nYou have keepinv.");
+            }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
             }
@@ -518,6 +537,14 @@ class MyTask extends BukkitRunnable {
             p.addPotionEffect(PotionEffectType.WEAKNESS.createEffect(2, 0));
             p.addPotionEffect(PotionEffectType.SLOW_FALLING.createEffect(2, 0));
             p.getWorld().spawnParticle(Particle.DRIP_LAVA, p.getLocation(), 1);
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("fox", p);
+        }).forEach((p) -> {
+            p.setFallDistance(0);
+            p.addPotionEffect(PotionEffectType.JUMP.createEffect(2, 1));
+            p.addPotionEffect(PotionEffectType.SPEED.createEffect(2, 1));
+            p.addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(300, 0));
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("firefly", p);
@@ -627,9 +654,6 @@ class MyTask extends BukkitRunnable {
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                 .forEach(p -> p.setFreezeTicks(40));
-        Bukkit.getOnlinePlayers().stream()
-                .filter(p -> AgmassMiniPowers.hasPP("warden", p))
-                .forEach(p -> p.addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(20, 0)));
     }
 }
 

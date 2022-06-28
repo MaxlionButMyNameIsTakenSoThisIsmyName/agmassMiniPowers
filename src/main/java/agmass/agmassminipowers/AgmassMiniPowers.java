@@ -36,6 +36,14 @@ public final class AgmassMiniPowers extends JavaPlugin {
     public static List<Material> beds = new ArrayList<Material>();
 
     public static void useAb(Player p) {
+        if (AgmassMiniPowers.hasPP("firefly", p.getPlayer())) {
+            NamespacedKey key69 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
+            if (p.getPersistentDataContainer().get(key69, PersistentDataType.INTEGER) == 0) {
+                p.getPersistentDataContainer().set(key69, PersistentDataType.INTEGER, 1);
+            } else {
+                p.getPersistentDataContainer().set(key69, PersistentDataType.INTEGER, 0);
+            }
+        }
         if (AgmassMiniPowers.hasPP("elytrian", p.getPlayer())) {
             if (p.isOnGround()) {
                 p.getWorld().spawnParticle(Particle.CLOUD, p.getLocation(), 10);
@@ -47,7 +55,7 @@ public final class AgmassMiniPowers extends JavaPlugin {
             p.getWorld().spawnParticle(Particle.FLASH, p.getLocation(), 10);
         }
         if (AgmassMiniPowers.hasPP("soulling", p)) {
-            if (p.getWorld().getName() != "soulworld") {
+            if (!p.getWorld().getName().equals("soulworld")) {
                 new Location(Bukkit.getWorld("soulworld"), 0, -1, 0).getBlock().setType(Material.BEDROCK);
                 p.teleport(new Location(Bukkit.getWorld("soulworld"), 0, 0, 0));
             } else {
@@ -97,6 +105,7 @@ public final class AgmassMiniPowers extends JavaPlugin {
         pps.add("elytrian");
         pps.add("merling");
         pps.add("swordsman");
+        pps.add("firefly");
         pps.add("human");
         this.getCommand("resetPP").setExecutor(new CommandKit());
         this.getCommand("a").setExecutor(new CommandKit2());
@@ -308,10 +317,43 @@ class MyListener implements Listener {
         if (AgmassMiniPowers.hasPP("frog", e.getPlayer())) {
             e.setCancelled(true);
         }
+        if (AgmassMiniPowers.hasPP("firefly", e.getPlayer())) {
+            List<Material> vegan = new ArrayList<Material>();
+            vegan.add(Material.PORKCHOP);
+            vegan.add(Material.COOKED_PORKCHOP);
+            vegan.add(Material.COD);
+            vegan.add(Material.SALMON);
+            vegan.add(Material.TROPICAL_FISH);
+            vegan.add(Material.PUFFERFISH);
+            vegan.add(Material.COOKED_COD);
+            vegan.add(Material.COOKED_SALMON);
+            vegan.add(Material.BEEF);
+            vegan.add(Material.COOKED_BEEF);
+            vegan.add(Material.CHICKEN);
+            vegan.add(Material.COOKED_CHICKEN);
+            vegan.add(Material.ROTTEN_FLESH);
+            vegan.add(Material.SPIDER_EYE);
+            vegan.add(Material.RABBIT);
+            vegan.add(Material.COOKED_RABBIT);
+            vegan.add(Material.RABBIT_STEW);
+            vegan.add(Material.MUTTON);
+            vegan.add(Material.COOKED_MUTTON);
+            if (vegan.contains(e.getItem().getType())) {
+                e.setCancelled(true);
+            }
+        }
     }
 
     @EventHandler
     public void frogeat(EntityDamageByEntityEvent e) {
+        if (e.getEntity().getType() == EntityType.PLAYER) {
+            if (AgmassMiniPowers.hasPP("firefly", Bukkit.getPlayer(e.getEntity().getName()))) {
+                if(e.getDamager() instanceof LivingEntity) {
+                    LivingEntity living = (LivingEntity) e.getDamager();
+                    living.addPotionEffect(PotionEffectType.POISON.createEffect(60, 1));
+                }
+            }
+        }
         if (e.getDamager().getType() == EntityType.PLAYER) {
             if (AgmassMiniPowers.hasPP("swordsman", Bukkit.getPlayer(e.getDamager().getName()))) {
                 List<Material> weaks = new ArrayList<Material>();
@@ -459,6 +501,9 @@ class MyTask extends BukkitRunnable {
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 5) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [SWORDSMAN]" + ChatColor.RED + "\n\nJust the classics" + ChatColor.GRAY + "\nUsing new combat methods/tools are weak." + ChatColor.RED + "\n\nCarpal Tunnel" + ChatColor.GRAY + "\nWhen moving using your hands- swimming, climbing, using elytra you get bad effects.", ChatColor.GOLD + "Attackable" + ChatColor.GRAY + "\nYou never have invlunerablity ticks, but pepole you hit do not get invincibility ticks." + ChatColor.GREEN + "\nJitter" + ChatColor.GRAY + "\nYou have no attack cooldown." + ChatColor.GREEN + "\nSkilled" + ChatColor.GRAY + "\nYou do 1.5x of your damage when you use a sword");
             }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 6) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [FIREFLY]" + ChatColor.RED + "\n\nBottom of the food chain" + ChatColor.GRAY + "\nYou can only eat plants." + ChatColor.RED + "\n\nSmall" + ChatColor.GRAY + "\nYou have 9 hearts.", ChatColor.GREEN + "Fly" + ChatColor.BLUE + "[F]" + ChatColor.GRAY + "\nWhen pressing F, you can swap between having levitation or slow falling." + ChatColor.GREEN + "\nLightning Bug" + ChatColor.GRAY + "\nYou have permanant night vision." + ChatColor.GREEN + "\nPoisonous" + ChatColor.GRAY + "\nAnyone who hits you gets poison");
+            }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
             }
@@ -473,6 +518,29 @@ class MyTask extends BukkitRunnable {
             p.addPotionEffect(PotionEffectType.WEAKNESS.createEffect(2, 0));
             p.addPotionEffect(PotionEffectType.SLOW_DIGGING.createEffect(2, 0));
             p.getWorld().spawnParticle(Particle.DRIP_LAVA, p.getLocation(), 1);
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("firefly", p);
+        }).forEach((p) -> {
+            p.setMaxHealth(16);
+            NamespacedKey key69 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
+            if (p.getPersistentDataContainer().get(key69, PersistentDataType.INTEGER) == null) {
+                p.getPersistentDataContainer().set(key69, PersistentDataType.INTEGER, 0);
+            }
+            p.addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(900, 0));
+            if (p.getPersistentDataContainer().get(key69, PersistentDataType.INTEGER) == 0) {
+                if (p.isSneaking()) {
+                    p.addPotionEffect(PotionEffectType.SLOW_FALLING.createEffect(2, 0));
+                }
+            }
+            if (p.getPersistentDataContainer().get(key69, PersistentDataType.INTEGER) == 1) {
+                p.addPotionEffect(PotionEffectType.LEVITATION.createEffect(2, 0));
+            }
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return !AgmassMiniPowers.hasPP("firefly", p);
+        }).forEach((p) -> {
+            p.setMaxHealth(20);
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("swordsman", p);
@@ -527,8 +595,12 @@ class MyTask extends BukkitRunnable {
             p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 3));
             p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 3 ));
             if (p.isInWater() && !new Location(p.getWorld(), p.getLocation().getX(), p.getEyeLocation().getY(), p.getLocation().getZ()).getBlock().getType().equals(Material.AIR)) {
-                p.setRemainingAir(0);
-                p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
+                if (p.getRemainingAir() >= 300 || p.getPersistentDataContainer().get(key131232, PersistentDataType.INTEGER) == 1) {
+                    p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
+                    p.setRemainingAir(0);
+                } else {
+                    p.setRemainingAir(p.getRemainingAir() + 6);
+                }
             } else {
                 if (p.getPersistentDataContainer().get(key131232, PersistentDataType.INTEGER) == 1) p.setRemainingAir(300);
                 p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 0);
@@ -552,10 +624,12 @@ class MyTask extends BukkitRunnable {
                         .forEach(p -> p.hidePlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), all));
             }
         }
-
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> AgmassMiniPowers.hasPP("warden", p))
                 .forEach(p -> p.setFreezeTicks(40));
+        Bukkit.getOnlinePlayers().stream()
+                .filter(p -> AgmassMiniPowers.hasPP("warden", p))
+                .forEach(p -> p.addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(20, 0)));
     }
 }
 

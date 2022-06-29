@@ -257,7 +257,7 @@ class MyListener implements Listener {
 
     @EventHandler
     public void noise6(BlockReceiveGameEvent event) {
-        if (!event.getEntity().getType().equals(null)) {
+        if (event.getEntity().getType() != null) {
             if (event.getEntity().getType().equals(EntityType.PLAYER)) {
                 if (AgmassMiniPowers.hasPP("warden", Bukkit.getPlayer(event.getEntity().getName())) || AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(event.getEntity().getName()))) {
                     event.setCancelled(true);
@@ -621,7 +621,7 @@ class MyTask extends BukkitRunnable {
             NamespacedKey key131232 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wasInWater");
             p.addPotionEffect(PotionEffectType.CONDUIT_POWER.createEffect(2, 3));
             p.addPotionEffect(PotionEffectType.DOLPHINS_GRACE.createEffect(2, 3 ));
-            if (p.isInWater() && !new Location(p.getWorld(), p.getLocation().getX(), p.getEyeLocation().getY(), p.getLocation().getZ()).getBlock().getType().equals(Material.AIR)) {
+            if (p.isInWater() && !new Location(p.getWorld(), p.getLocation().getX(), p.getEyeLocation().getY(), p.getLocation().getZ()).getBlock().getType().equals(Material.AIR) || !p.getWorld().isClearWeather() || p.hasPotionEffect(PotionEffectType.WATER_BREATHING)) {
                 if (p.getRemainingAir() >= 300 || p.getPersistentDataContainer().get(key131232, PersistentDataType.INTEGER) == 1) {
                     p.getPersistentDataContainer().set(key131232, PersistentDataType.INTEGER, 1);
                     p.setRemainingAir(0);

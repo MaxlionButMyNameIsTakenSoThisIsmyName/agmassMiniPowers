@@ -1,6 +1,7 @@
 package agmass.agmassminipowers;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -35,6 +36,21 @@ public final class AgmassMiniPowers extends JavaPlugin {
     public static List<String> pps = new ArrayList<String>();
     public static List<Material> beds = new ArrayList<Material>();
 
+    private boolean getHighestBlockYAt(Location loc){
+
+        for (int i = loc.getBlockY(); i < 256; i++){
+            Block block = loc.getWorld().getBlockAt(loc.getBlockX(), i, loc.getBlockZ());
+
+            if(block != null && !block.isLiquid()
+                    && block.getType() != Material.AIR
+                    && block.getType() != Material.CAVE_AIR) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static void useAb(Player p) {
         if (AgmassMiniPowers.hasPP("firefly", p.getPlayer())) {
             NamespacedKey key69 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "selectedPP");
@@ -43,6 +59,9 @@ public final class AgmassMiniPowers extends JavaPlugin {
             } else {
                 p.getPersistentDataContainer().set(key69, PersistentDataType.INTEGER, 0);
             }
+        }
+        if (AgmassMiniPowers.hasPP("allay", p.getPlayer())) {
+            p.setVelocity(new Vector(0, 0.3, 0));
         }
         if (AgmassMiniPowers.hasPP("elytrian", p.getPlayer())) {
             if (p.isOnGround()) {
@@ -64,10 +83,11 @@ public final class AgmassMiniPowers extends JavaPlugin {
             }
         }
         if (AgmassMiniPowers.hasPP("warden", p)) {
-            p.addPotionEffect(PotionEffectType.DARKNESS.createEffect(90, 2));
+            p.getWorld().playSound(p.getLocation(), Sound.ENTITY_WARDEN_SNIFF, 1, 1);
             for (Entity ps : p.getNearbyEntities(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ())) {
                 if (ps instanceof Player){
                     Player pps = ((Player) ps).getPlayer();
+                    p.spawnParticle(Particle.FLASH, pps.getLocation(), 2);
                     pps.addPotionEffect(PotionEffectType.DARKNESS.createEffect(180, 2));
                 }
             }
@@ -107,6 +127,8 @@ public final class AgmassMiniPowers extends JavaPlugin {
         pps.add("swordsman");
         pps.add("firefly");
         pps.add("fox");
+        pps.add("enderian");
+        pps.add("allay");
         pps.add("human");
         this.getCommand("resetPP").setExecutor(new CommandKit());
         this.getCommand("a").setExecutor(new CommandKit2());
@@ -190,6 +212,8 @@ class MyListener implements Listener {
             for (Player all : Bukkit.getOnlinePlayers()) {
                 if (AgmassMiniPowers.hasPP("warden", all)) {
                     all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), event.getPlayer());
+                    if (!AgmassMiniPowers.hasPP("warden", event.getPlayer()))
+                        all.spawnParticle(Particle.FLASH, event.getPlayer().getLocation(), 2);
                 }
             }
             wardenTimerReset(event.getPlayer(), 30.0);
@@ -203,6 +227,8 @@ class MyListener implements Listener {
         for (Player all : Bukkit.getOnlinePlayers()) {
             if (AgmassMiniPowers.hasPP("warden", all)) {
                 all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), event.getPlayer());
+                if (!AgmassMiniPowers.hasPP("warden", event.getPlayer()))
+                    all.spawnParticle(Particle.FLASH, event.getPlayer().getLocation(), 2);
             }
         }
     }
@@ -215,6 +241,8 @@ class MyListener implements Listener {
             for (Player all : Bukkit.getOnlinePlayers()) {
                 if (AgmassMiniPowers.hasPP("warden", all)) {
                     all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), Bukkit.getServer().getPlayer(event.getDamager().getName()));
+                    if (!AgmassMiniPowers.hasPP("warden", Bukkit.getServer().getPlayer(event.getDamager().getName())))
+                        all.spawnParticle(Particle.FLASH, Bukkit.getServer().getPlayer(event.getDamager().getName()).getLocation(), 2);
                 }
             }
         }
@@ -236,6 +264,8 @@ class MyListener implements Listener {
         for (Player all : Bukkit.getOnlinePlayers()) {
             if (AgmassMiniPowers.hasPP("warden", all)) {
                 all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), event.getPlayer());
+                if (!AgmassMiniPowers.hasPP("warden", event.getPlayer()))
+                    all.spawnParticle(Particle.FLASH, event.getPlayer().getLocation(), 2);
             }
         }
     }
@@ -251,13 +281,15 @@ class MyListener implements Listener {
         for (Player all : Bukkit.getOnlinePlayers()) {
             if (AgmassMiniPowers.hasPP("warden", all)) {
                 all.showPlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), event.getPlayer());
+                if (!AgmassMiniPowers.hasPP("warden", event.getPlayer()))
+                    all.spawnParticle(Particle.FLASH, event.getPlayer().getLocation(), 2);
             }
         }
     }
 
     @EventHandler
     public void noise6(BlockReceiveGameEvent event) {
-        if (event.getEntity().getType() != null) {
+        if (event.getEntity() != null) {
             if (event.getEntity().getType().equals(EntityType.PLAYER)) {
                 if (AgmassMiniPowers.hasPP("warden", Bukkit.getPlayer(event.getEntity().getName())) || AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(event.getEntity().getName()))) {
                     event.setCancelled(true);
@@ -281,6 +313,12 @@ class MyListener implements Listener {
 
     @EventHandler
     public void onEntityTarget(EntityTargetEvent event) {
+        if ((event.getTarget() instanceof Player) && (AgmassMiniPowers.hasPP("enderian", Bukkit.getPlayer(event.getTarget().getName())))) {
+            EntityType et = event.getEntity().getType();
+            if (et.equals(EntityType.ENDERMAN) || et.equals(EntityType.SHULKER) || et.equals(EntityType.SHULKER_BULLET) || et.equals(EntityType.ENDER_DRAGON)) {
+                event.setCancelled(true);
+            }
+        }
         if ((event.getTarget() instanceof Player) && (AgmassMiniPowers.hasPP("soulling", Bukkit.getPlayer(event.getTarget().getName())))) {
             EntityType et = event.getEntity().getType();
             if (et.equals(EntityType.STRIDER) || et.equals(EntityType.ZOMBIFIED_PIGLIN) || et.equals(EntityType.GHAST) || et.equals(EntityType.PIGLIN) || et.equals(EntityType.HOGLIN) || et.equals(EntityType.MAGMA_CUBE) || et.equals(EntityType.BLAZE) || et.equals(EntityType.WITHER_SKELETON) || et.equals(EntityType.PIGLIN_BRUTE))
@@ -290,7 +328,9 @@ class MyListener implements Listener {
 
     @EventHandler
     public void noFoodRegen(FoodLevelChangeEvent e) {
-        if (AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(e.getEntity().getName())) && e.getFoodLevel() > e.getEntity().getFoodLevel()) e.setCancelled(true);
+        if (AgmassMiniPowers.hasPP("frog", Bukkit.getPlayer(e.getEntity().getName())) && e.getFoodLevel() > e.getEntity().getFoodLevel()) {
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -307,6 +347,11 @@ class MyListener implements Listener {
                     ((Player) event.getEntity()).damage(event.getDamage());
                 }
             }
+            if (AgmassMiniPowers.hasPP("allay", (Player) event.getEntity())) {
+                if (event.getCause() == EntityDamageEvent.DamageCause.FALL || event.getCause() == EntityDamageEvent.DamageCause.FLY_INTO_WALL) {
+                    event.setCancelled(true);
+                }
+            }
         }
         if (et.equals(EntityType.STRIDER) || et.equals(EntityType.ZOMBIFIED_PIGLIN) || et.equals(EntityType.GHAST) || et.equals(EntityType.PIGLIN) || et.equals(EntityType.HOGLIN) || et.equals(EntityType.MAGMA_CUBE) || et.equals(EntityType.BLAZE) || et.equals(EntityType.WITHER_SKELETON) || et.equals(EntityType.PIGLIN_BRUTE))
             Bukkit.getOnlinePlayers().stream()
@@ -316,7 +361,7 @@ class MyListener implements Listener {
 
     @EventHandler
     public void frogdis(PlayerItemConsumeEvent e) {
-        if (AgmassMiniPowers.hasPP("frog", e.getPlayer())) {
+        if (AgmassMiniPowers.hasPP("frog", e.getPlayer()) || AgmassMiniPowers.hasPP("allay", e.getPlayer())) {
             e.setCancelled(true);
         }
         if (AgmassMiniPowers.hasPP("fox", e.getPlayer())) {
@@ -442,6 +487,20 @@ class MyListener implements Listener {
     }
     @EventHandler
     public void rclick(PlayerInteractEvent e) {
+        if (e.getAction() == Action.RIGHT_CLICK_BLOCK || e.getAction() == Action.RIGHT_CLICK_AIR) {
+            if (AgmassMiniPowers.hasPP("allay", e.getPlayer())) {
+                if (e.getItem() != null) {
+                    if (e.getItem().getType() == Material.AMETHYST_SHARD) {
+                        if (e.getPlayer().getFoodLevel() < 20) {
+                            e.getPlayer().setFoodLevel(e.getPlayer().getFoodLevel() + 3);
+                            e.getPlayer().setSaturation(e.getPlayer().getSaturation() + 2);
+                            e.getItem().setAmount(e.getItem().getAmount() - 1);
+                            e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_ALLAY_AMBIENT_WITH_ITEM, 1, 1);
+                        }
+                    }
+                }
+            }
+        }
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (AgmassMiniPowers.hasPP("soulling", e.getPlayer()) || AgmassMiniPowers.hasPP("fox", e.getPlayer())) {
                 if (AgmassMiniPowers.beds.contains(e.getClickedBlock().getType())) {
@@ -523,6 +582,12 @@ class MyTask extends BukkitRunnable {
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 7) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [FOX]" + ChatColor.RED + "\n\nBerry Picky Eater" + ChatColor.GRAY + "\nYou can only eat glow berries and normal berries." + ChatColor.RED + "\n\nNight Owl" + ChatColor.GRAY + "\nYou cannot sleep.", ChatColor.GREEN + "Sly Fox" + ChatColor.GRAY + "\nYou run and jump faster" + ChatColor.GREEN + "\nStrong eyes" + ChatColor.GRAY + "\nYou have permanant night vision." + ChatColor.GREEN + "\nHoarder" + ChatColor.GRAY + "\nYou have keepinv.");
             }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 8) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [ENDERIAN]" + ChatColor.RED + "\n\nHydrophobic" + ChatColor.GRAY + "\nYou take damage in water" + ChatColor.RED + "\n\nScared Of Gourds" + ChatColor.GRAY + "\nYou cannot see players with pumpkins.", ChatColor.GOLD + "Teleportation" + ChatColor.GRAY + "\n9th slot is an enderpearl" + ChatColor.GREEN + "\nOld Friends" + ChatColor.GRAY + "\nEnd mobs do not attack you.");
+            }
+            if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == 9) {
+                bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [ALLAY]" + ChatColor.RED + "\n\nHungry Little Boi" + ChatColor.GRAY + "\nYou can only eat amethyst", ChatColor.GOLD + "\n\nGlide" + ChatColor.BLUE + "[F]" + ChatColor.GRAY + "\nYou constantly are in an elytra state and can glide over the world. Press F to gain a small boost up.", ChatColor.GOLD + "Regeneration" + ChatColor.GRAY + "\nYou regenerate" + ChatColor.GREEN);
+            }
             if (p.getPersistentDataContainer().get(key13123, PersistentDataType.INTEGER) == AgmassMiniPowers.pps.size() - 1) {
                 bm.addPage(ChatColor.LIGHT_PURPLE + "Drop this book to choose this origin! [HUMAN]\n" + ChatColor.GRAY + "Dude. It's normal minecraft.");
             }
@@ -537,6 +602,17 @@ class MyTask extends BukkitRunnable {
             p.addPotionEffect(PotionEffectType.WEAKNESS.createEffect(2, 0));
             p.addPotionEffect(PotionEffectType.SLOW_FALLING.createEffect(2, 0));
             p.getWorld().spawnParticle(Particle.DRIP_LAVA, p.getLocation(), 1);
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("allay", p);
+        }).forEach((p) -> {
+            p.setFlySpeed(0.75f);
+            p.addPotionEffect(PotionEffectType.JUMP.createEffect(2, -2));
+            p.addPotionEffect(PotionEffectType.REGENERATION.createEffect(2, 0));
+            //if (!p.isOnGround())
+            //    p.addPotionEffect(PotionEffectType.SLOW_FALLING.createEffect(2, 0));
+            if (!p.isGliding())
+                p.setGliding(true);
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("fox", p);
@@ -616,6 +692,28 @@ class MyTask extends BukkitRunnable {
             p.addPotionEffect(PotionEffectType.JUMP.createEffect(2, 1));
         });
         Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return !AgmassMiniPowers.hasPP("enderian", p);
+        }).forEach((p) -> {
+            if (p.getInventory().getHelmet() != null) {
+                if (p.getInventory().getHelmet().getType() == Material.PUMPKIN) {
+                    Bukkit.getOnlinePlayers().stream().filter((pee) -> {
+                        return AgmassMiniPowers.hasPP("enderian", p);
+                    }).forEach((pee) -> {
+                        pee.hidePlayer(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), p);
+                    });
+                }
+            }
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("enderian", p);
+        }).forEach((p) -> {
+            if (p.isInWater()) {
+                p.damage(1);
+            }
+            ItemStack is = new ItemStack(Material.ENDER_PEARL, 2);
+            p.getInventory().setItem(8, is);
+        });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
             return AgmassMiniPowers.hasPP("merling", p);
         }).forEach((p) -> {
             NamespacedKey key131232 = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wasInWater");
@@ -642,6 +740,12 @@ class MyTask extends BukkitRunnable {
         }).forEach((p) -> {
             p.setWalkSpeed(0.2f);
         });
+        Bukkit.getOnlinePlayers().stream().filter((p) -> {
+            return AgmassMiniPowers.hasPP("warden", p);
+        }).forEach((p) -> {
+            p.addPotionEffect(PotionEffectType.DARKNESS.createEffect(200, 2));
+            p.addPotionEffect(PotionEffectType.NIGHT_VISION.createEffect(200, 0));
+        });
         for(Player all : Bukkit.getOnlinePlayers()) {
             NamespacedKey key = new NamespacedKey(AgmassMiniPowers.getPlugin(AgmassMiniPowers.class), "wTime");
             all.getPlayer().getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, all.getPlayer().getPersistentDataContainer().get(key, PersistentDataType.DOUBLE) - 1);
@@ -653,7 +757,7 @@ class MyTask extends BukkitRunnable {
         }
         Bukkit.getOnlinePlayers().stream()
                 .filter(p -> AgmassMiniPowers.hasPP("warden", p))
-                .forEach(p -> p.setFreezeTicks(40));
+                .forEach(p -> p.setFreezeTicks(10));
     }
 }
 
